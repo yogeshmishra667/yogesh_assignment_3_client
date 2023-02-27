@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Input, notification } from 'antd';
 import { useForm } from 'antd/lib/form/Form';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const Model = ({ visible, onClose }) => {
   const [name, setName] = useState('');
@@ -13,6 +13,7 @@ const Model = ({ visible, onClose }) => {
   const [form] = useForm();
   const { id } = useParams();
   const BASE_URI = 'https://techosto-backend.onrender.com/api/v1/users';
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,11 +40,12 @@ const Model = ({ visible, onClose }) => {
       });
     } else {
       await axios.patch(`${BASE_URI}/${id}`, updatedData);
-
       notification.success({
         message: 'Success',
         description: 'User details updated successfully',
       });
+
+      navigate('/');
 
       // for reloading the page after updating the data
       window.location.reload();
