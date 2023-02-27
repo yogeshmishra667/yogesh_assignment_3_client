@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Input } from 'antd';
+import { Modal, Button, Form, Input, notification } from 'antd';
 import { useForm } from 'antd/lib/form/Form';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
@@ -13,6 +13,7 @@ const Model = ({ visible, onClose }) => {
   const [form] = useForm();
   const { id } = useParams();
   const BASE_URI = 'https://techosto-backend.onrender.com/api/v1/users';
+
   useEffect(() => {
     const fetchData = async () => {
       const res = await axios.get(`${BASE_URI}/${id}`);
@@ -23,14 +24,30 @@ const Model = ({ visible, onClose }) => {
   }, [id]);
 
   const handleSubmit = async (e) => {
-    await axios.patch(`${BASE_URI}/${id}`, {
-      name,
-      email,
-      phone,
-      website,
-    });
-    //for reloading the page after updating the data
-    return window.location.reload();
+    const { name, email, phone, website } = form.getFieldsValue(); // get updated form values
+    const updatedData = {};
+    // update only fields that have changed
+    name !== formData.name && (updatedData.name = name);
+    email !== formData.email && (updatedData.email = email);
+    phone !== formData.phone && (updatedData.phone = phone);
+    website !== formData.website && (updatedData.website = website);
+
+    if (Object.keys(updatedData).length === 0) {
+      notification.error({
+        message: 'Error',
+        description: 'Please update at least one field',
+      });
+    } else {
+      await axios.patch(`${BASE_URI}/${id}`, updatedData);
+
+      notification.success({
+        message: 'Success',
+        description: 'User details updated successfully',
+      });
+
+      // for reloading the page after updating the data
+      window.location.reload();
+    }
   };
 
   return (
@@ -45,15 +62,7 @@ const Model = ({ visible, onClose }) => {
             },
           ]}
         >
-          <Input
-            onChange={(e) =>
-              setName({
-                ...name,
-                name: e.target.value,
-              })
-            }
-            value={name}
-          />
+          <Input onChange={(e) => setName(e.target.value)} value={formData.name} />
         </Form.Item>
         <Form.Item
           name="email"
@@ -64,7 +73,7 @@ const Model = ({ visible, onClose }) => {
             },
           ]}
         >
-          <Input onChange={(e) => setEmail(e.target.value)} value={email} />
+          <Input onChange={(e) => setEmail(e.target.value)} value={formData.email} />
         </Form.Item>
         <Form.Item
           name="phone"
@@ -75,7 +84,7 @@ const Model = ({ visible, onClose }) => {
             },
           ]}
         >
-          <Input onChange={(e) => setPhone(e.target.value)} value={phone} />
+          <Input onChange={(e) => setPhone(e.target.value)} value={formData.phone} />
         </Form.Item>
         <Form.Item
           name="website"
@@ -86,7 +95,7 @@ const Model = ({ visible, onClose }) => {
             },
           ]}
         >
-          <Input value={website} onChange={(e) => setWebsite(e.target.value)} />
+          <Input value={formData.website} onChange={(e) => setWebsite(e.target.value)} />
         </Form.Item>
 
         <Form.Item>
